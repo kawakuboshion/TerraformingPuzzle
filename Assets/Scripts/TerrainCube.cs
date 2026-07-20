@@ -1,12 +1,11 @@
-using System;
 using UnityEngine;
-using static UnityEngine.Rendering.DebugUI;
 
 public class TerrainCube : MonoBehaviour
 {
     [SerializeField] private TerrainType _terrainType;
     [SerializeField] private MeshRenderer _renderer;
-    [SerializeField] private Material[] _materials;
+    [SerializeField] private GameObject _plants; 
+    public TerrainManager _terrainManager { private get; set; }
     public TerrainType TerrainType {  get { return _terrainType; } set { ChangeTerrainType(value); } }
     private float[] _heightScales = new float[8]
     {
@@ -21,23 +20,20 @@ public class TerrainCube : MonoBehaviour
     private void ChangeTerrainType(TerrainType terrainType)
     {
         _terrainType = terrainType;
-        if(_renderer != null)
+        if(_renderer != null && _terrainManager != null)
         {
-            _renderer.material = _materials[(int)_terrainType];
+            _renderer.material = _terrainManager.GetTerrainMaterial(terrainType);
         }
         Vector3 scale = transform.localScale;
         transform.localScale = new Vector3(scale.x, _heightScales[(int)_terrainType], scale.z);
-    }
-}
 
-public enum TerrainType
-{
-    VacantLot,
-    Wasteland,
-    Water,
-    Soil,
-    Fire,
-    Mud,
-    FertileLand,
-    Desert,
+        if(terrainType == TerrainType.FertileLand)
+        {
+            _plants.SetActive(true);
+        }
+        else
+        {
+            _plants.SetActive(false);
+        }
+    }
 }
