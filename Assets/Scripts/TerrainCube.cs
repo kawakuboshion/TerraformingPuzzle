@@ -1,39 +1,42 @@
+using System.Collections;
 using UnityEngine;
 
 public class TerrainCube : MonoBehaviour
 {
     [SerializeField] private TerrainType _terrainType;
     [SerializeField] private MeshRenderer _renderer;
-    [SerializeField] private GameObject _plants; 
-    public TerrainManager _terrainManager { private get; set; }
-    public TerrainType TerrainType {  get { return _terrainType; } set { ChangeTerrainType(value); } }
-    private float[] _heightScales = new float[8]
-    {
-        0.2f, 0.2f, 0.1f, 0.4f, 0.6f, 0.3f, 0.5f, 0.2f
-    };
+    [SerializeField] private GameObject _plants;
+    [SerializeField] private TerrainAnimationController _animationController;
+    [SerializeField] private TerrainConfig _terrainConfig;
 
-    private void OnValidate()
+    public TerrainManager TerrainManager { private get; set; }
+
+    public TerrainType TerrainType
     {
-        ChangeTerrainType(TerrainType);
+        get { return _terrainType; }
+        set { _terrainType = value; }
     }
 
-    private void ChangeTerrainType(TerrainType terrainType)
-    {
-        _terrainType = terrainType;
-        if(_renderer != null && _terrainManager != null)
-        {
-            _renderer.material = _terrainManager.GetTerrainMaterial(terrainType);
-        }
-        Vector3 scale = transform.localScale;
-        transform.localScale = new Vector3(scale.x, _heightScales[(int)_terrainType], scale.z);
+    private TerrainType _oldTerrainType;
+    private bool _isChangeNewStyle = false;
 
-        if(terrainType == TerrainType.FertileLand)
+    public IEnumerator ChangeTerrainStyle(float fadeDuration, UnityEngine.Events.UnityAction<IEnumerator> callback)
+    {
+        if (_isChangeNewStyle)
         {
-            _plants.SetActive(true);
+            _oldTerrainType = _terrainType;
+            _isChangeNewStyle = false;
         }
-        else
-        {
-            _plants.SetActive(false);
-        }
+
+        yield return _animationController.PlayTerrainTransitionAnimation(
+            _renderer,
+            _plants,
+            _oldTerrainType,
+            _terrainType,
+            transform,
+            fadeDuration,
+            callback);
+
+        _isChangeNewStyle = true;
     }
 }

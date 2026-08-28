@@ -9,11 +9,41 @@ public class TerrainCard : MonoBehaviour
     [SerializeField] private GameObject _selectedObject;
     [SerializeField] private TerrainType _terrainType = TerrainType.VacantLot;
     [SerializeField] private string _name;
-    public bool _isSelected = false; 
-    public TerrainType _TerainType { get { return _terrainType; } set { ChangeTerrainType(value); } }
-    public HandSlots _handSlots { private get; set; }
-    public TerrainManager _terrainManager { private get; set; }
-    public int _handSlotIndex { private get; set; }
+
+    private bool _isSelected = false;
+    private HandSlots _handSlots;
+    private TerrainManager _terrainManager;
+    private int _handSlotIndex;
+
+    public TerrainType TerrainType
+    {
+        get { return _terrainType; }
+        set { ChangeTerrainType(value); }
+    }
+
+    public bool IsSelected
+    {
+        get { return _isSelected; }
+        set { _isSelected = value; }
+    }
+
+    public HandSlots HandSlots
+    {
+        get { return _handSlots; }
+        set { _handSlots = value; }
+    }
+
+    public TerrainManager TerrainManager
+    {
+        get { return _terrainManager; }
+        set { _terrainManager = value; }
+    }
+
+    public int HandSlotIndex
+    {
+        get { return _handSlotIndex; }
+        set { _handSlotIndex = value; }
+    }
 
     private void Start()
     {
@@ -36,7 +66,7 @@ public class TerrainCard : MonoBehaviour
         _isSelected = true;
     }
 
-    public void UnSelect ()
+    public void UnSelect()
     {
         _isSelected = false;
         _selectedObject.SetActive(false);

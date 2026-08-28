@@ -7,19 +7,32 @@ public class PlayerAction : MonoBehaviour
     [SerializeField] private GridManager _gridManager;
     [SerializeField] private HandSlots _handSlots;
 
-    // Update is called once per frame
+    private bool _canMove = true;
+
+    public bool CanMove
+    {
+        get { return _canMove; }
+        set { _canMove = value; }
+    }
+
     void Update()
     {
         Mouse mouse = Mouse.current;
         if (mouse == null) { return; }
+        if (!_canMove) { return; }
+
         if (mouse.leftButton.wasPressedThisFrame)
         {
             if (_gridSelector.TryGetSelectPos(out Vector3 pos) && _gridManager.TryWorldPositionToGridPosition(pos, out (int, int) gridPos))
             {
-                if(_handSlots.TryGetUseCard(out TerrainType type))
+                if (_handSlots.TryGetUseCard(out TerrainType type))
                 {
-                    Debug.Log(type);
-                    _gridManager.ChangeTerrainType(type, gridPos);
+                    if (_gridManager.GetTerrainType(gridPos) != type && _gridManager.GetTerrainType(gridPos) != TerrainType.FertileLand)
+                    {
+                        _gridManager.TopographicalChanges(gridPos, type);
+                        _handSlots.UseCard();
+                        _canMove = false;
+                    }
                 }
             }
         }

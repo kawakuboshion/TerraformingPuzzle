@@ -1,22 +1,31 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class HandSlots : MonoBehaviour
 {
     [SerializeField] private TerrainManager _manager;
     [SerializeField] private TerrainCard _terrainCardPrefab;
-    private TerrainCard[] _terrainCards = new TerrainCard[3];
+    [SerializeField] private CardConfig _cardConfig;
+    [SerializeField] private CardGenerator _cardGenerator;
+
+    private List<TerrainCard> _terrainCards = new();
     private int _selectIndex = 0;
+
     void Start()
     {
-        for (int i = 0; i < _terrainCards.Length; i++)
+        _cardGenerator.Initialize(_cardConfig);
+
+        for (int i = 0; i < _cardConfig.SlotCount; i++)
         {
             SetNewCard(i);
         }
     }
 
+    public int GetCardCount() => _terrainCards.Count;
+
     public void ResetSelect()
     {
-        for (int i = 0; i < _terrainCards.Length; i++)
+        for (int i = 0; i < _terrainCards.Count; i++)
         {
             _terrainCards[i].UnSelect();
         }
@@ -24,20 +33,28 @@ public class HandSlots : MonoBehaviour
 
     public bool TryGetUseCard(out TerrainType terrainType)
     {
-        if(TryGetSelectIndex(out _selectIndex))
+        if (TryGetSelectIndex(out _selectIndex))
         {
-            terrainType = _terrainCards[_selectIndex]._TerainType;
+            terrainType = _terrainCards[_selectIndex].TerrainType;
             return true;
         }
         terrainType = TerrainType.VacantLot;
         return false;
     }
 
+    public void UseCard()
+    {
+        var card = _terrainCards[_selectIndex].gameObject;
+        _terrainCards.Remove(_terrainCards[_selectIndex]);
+        Destroy(card);
+        SetNewCard(_selectIndex);
+    }
+
     private bool TryGetSelectIndex(out int index)
     {
-        for (int i = 0; i < _terrainCards.Length; i++)
+        for (int i = 0; i < _terrainCards.Count; i++)
         {
-            if (_terrainCards[i]._isSelected)
+            if (_terrainCards[i].IsSelected)
             {
                 index = i;
                 return true;
@@ -49,11 +66,11 @@ public class HandSlots : MonoBehaviour
 
     public void SetNewCard(int index)
     {
-        TerrainCard card = Instantiate(_terrainCardPrefab,transform);
-        card._terrainManager = _manager;
-        card._TerainType = (TerrainType)Random.Range((int)TerrainType.Water, (int)TerrainType.Mud);
-        card._handSlots = this;
-        card._handSlotIndex = index;
-        _terrainCards[index] = card;
+        TerrainCard card = Instantiate(_terrainCardPrefab, transform);
+        card.TerrainManager = _manager;
+        card.TerrainType = _cardGenerator.GetRandomTerrainType();
+        card.HandSlots = this;
+        card.HandSlotIndex = index;
+        _terrainCards.Add(card);
     }
 }

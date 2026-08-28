@@ -1,16 +1,26 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class GridManager : MonoBehaviour
 {
     [SerializeField] private int _row;
     [SerializeField] private int _column;
-    [SerializeField] private float _spacing = 1.1f; // Cube同士の間隔
+    [SerializeField] private float _spacing = 1.1f;
     [SerializeField] private TerrainCube _terrainCubePrefab;
     [SerializeField] private TerrainManager _terrainManager;
+    [SerializeField] private GameManager _gameManager;
+    [SerializeField] private TerrainTransitionRules _terrainTransitionRules;
+    [SerializeField] private EnvironmentalChangeHandler _environmentalChangeHandler;
+
+    public int Row { get => _row; }
+    public int Column { get => _column; }
+
     private TerrainCube[,] _board;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    private HashSet<(int, int)> _visitedGrids = new HashSet<(int, int)>();
+
+    void Awake()
     {
         _board = new TerrainCube[_row, _column];
         for(int i = 0; i < _row; i++)
@@ -19,43 +29,128 @@ public class GridManager : MonoBehaviour
             {
                 _board[i, j] = Instantiate(_terrainCubePrefab, new Vector3(i * _spacing, 0, j * _spacing), Quaternion.identity);
                 _board[i, j]._terrainManager = _terrainManager;
-                _board[i, j].TerrainType = TerrainType.VacantLot;
+                _board[i, j].TerrainType = (TerrainType)UnityEngine.Random.Range(0, Enum.GetValues(typeof(TerrainType)).Length);
             }
         }
     }
 
+    /// <summary>
+    /// 地形を変更する
+    /// </summary>
+    /// <param name="type">新しい地形</param>
+    /// <param name="gridPos">座標</param>
     public void ChangeTerrainType(TerrainType type, (int,int) gridPos)
     {
         _board[gridPos.Item1, gridPos.Item2].TerrainType = type;
     }
 
-    private void TopographicalChanges((int, int) gridPos, TerrainType type)
+    /// <summary>
+    /// 周囲の地形を変化させる。
+    /// <para>地形が変化した場合、そこからさらに変化させる</para>
+    /// </summary>
+    /// <param name="gridPos">中央の座標</param>
+    /// <param name="type">中央の地形</param>
+    public void TopographicalChanges((int, int) gridPos, TerrainType type)
     {
-        switch(type)
-        {
+        if (_visitedGrids.Contains(gridPos)) { return; }
+        _visitedGrids.Add(gridPos);
 
-        }
-    }
-
-    private bool FindTypeInAroundTerrain((int,int) gridPos ,TerrainType type)
-    {
-        (int, int)[] aroundGrid = new (int, int)[4]
+        try
         {
-            (gridPos.Item1,gridPos.Item2 - 1),
-            (gridPos.Item1,gridPos.Item2 + 1),
-            (gridPos.Item1 - 1,gridPos.Item2),
-            (gridPos.Item1 + 1,gridPos.Item2),
-        };
-        for(int i = 0; i < aroundGrid.Length; i++)
-        {
-            if(_board[aroundGrid[i].Item1, aroundGrid[i].Item2].TerrainType == type)
+            (int, int)[] aroundGrid = new (int, int)[5]
             {
-                return true;
+            gridPos,
+            (gridPos.Item1, gridPos.Item2 - 1),
+            (gridPos.Item1, gridPos.Item2 + 1),
+            (gridPos.Item1 - 1, gridPos.Item2),
+            (gridPos.Item1 + 1, gridPos.Item2),
+            };
+
+            for (int i = 0; i < aroundGrid.Length; i++)
+            {
+                if (aroundGrid[i].Item1 < 0 || aroundGrid[i].Item1 >= _board.GetLength(0)) { continue; }
+                if (aroundGrid[i].Item2 < 0 || aroundGrid[i].Item2 >= _board.GetLength(1)) { continue; }
+
+                if (i != 0 && _visitedGrids.Contains(aroundGrid[i])) { continue; }
+
+                if (_terrainTransitionRules.TryTransitionTerrain(type, _board[aroundGrid[i].Item1, aroundGrid[i].Item2].TerrainType, out TerrainType newType))
+                {
+                    ChangeTerrainType(newType, aroundGrid[i]);
+
+                    if (i != 0)
+                    {
+                        TopographicalChanges(aroundGrid[i], newType);
+                    }
+                }
+                else
+                {
+                    if (i == 0)
+                    {
+                        ChangeTerrainType(type, aroundGrid[i]);
+                    }
+                }
             }
         }
-        return false;
+        finally
+        {
+            _visitedGrids.Remove(gridPos);
+        }
     }
 
+    public TerrainType GetTerrainType((int, int) gridPos)
+    {
+        return _board[gridPos.Item1, gridPos.Item2].TerrainType;
+    }
+
+    /// <summary>
+    /// タイルを置いた時の地形の変化
+    /// </summary>
+    /// <param name="type1">地形1</param>
+    /// <param name="type2">地形2</param>
+    /// <param name="newType">変化後の地形</param>
+    /// <returns>変化したか</returns>
+    public bool TopographicalChanges(TerrainType type1, TerrainType type2, out TerrainType newType)
+    {
+        return _terrainTransitionRules.TryTransitionTerrain(type1, type2, out newType);
+    }
+
+    /// <summary>
+    /// 環境を変化させる。砂漠化と火災の拡散を行う。
+    /// </summary>
+    /// <param name="isSpreadFire">火災の拡散を行うか</param>
+    public void EnvironmentalChanges(bool isSpreadFire)
+    {
+        _environmentalChangeHandler.ApplyEnvironmentalChanges(isSpreadFire);
+    }
+
+    public void ChangeNewStyle(float fadeDuration, UnityEngine.Events.UnityAction<IEnumerator> last)
+    {
+        for (int r = 0; r < Row; r++)
+        {
+            for (int c = 0; c < Column; c++)
+            {
+                // 全てのマスは null を渡して実行（ここでは last を実行させない）
+                if (_board[r, c] != null)
+                {
+                    StartCoroutine(_board[r, c].ChangeTerrainStyle(fadeDuration, null));
+                }
+            }
+        }
+
+        // 2. 全マスのコルーチンを開始した「後」に、最後の処理を1度だけ実行する
+        // last が null でないか確認（UnityAction のため、Invoke を使うか、引数の型に合わせる）
+        if (last != null)
+        {
+            last.Invoke(null);
+        }
+    }
+
+    /// <summary>
+    /// world座標をグリッド上の座標に変換する。
+    /// </summary>
+    /// <param name="worldPos">world座標</param>
+    /// <param name="gridPos">グリッド上の座標</param>
+    /// <returns>変換できたか</returns>
     public bool TryWorldPositionToGridPosition(Vector3 worldPos,out (int,int) gridPos)
     {
         for(int r = 0; r < _row; r++)

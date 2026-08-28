@@ -33,6 +33,7 @@ public class GridSelector : MonoBehaviour
             if(hitTerrain != null )
             {
                 _selectCursol.transform.position = hitTerrain.transform.position + new Vector3(0, 0.15f, 0);
+                _selectCursol.transform.localScale = hit.collider.gameObject.transform.localScale + new Vector3(0, 0.5f, 0);
                 _selectCursol.SetActive(true);
 
                 _selectPos = hitTerrain.transform.position;
@@ -44,6 +45,12 @@ public class GridSelector : MonoBehaviour
                 _selectPos = Vector3.zero;
                 _selected = false;
             }
+        }
+        else
+        {
+            _selectCursol.SetActive(false);
+            _selectPos = Vector3.zero;
+            _selected = false;
         }
     }
 

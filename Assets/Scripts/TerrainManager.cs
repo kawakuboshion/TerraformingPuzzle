@@ -2,10 +2,14 @@ using UnityEngine;
 
 public class TerrainManager : MonoBehaviour
 {
-    [SerializeField] private Material[] _materials;
+    [SerializeField]
+    private Color[] _terrainColors = new Color[]
+    {
+        Color.gray, Color.gray, Color.blue, Color.brown, Color.darkRed, Color.green, Color.yellowNice, Color.orange 
+    };
     private string[] _terrainNames = new string[]
     {
-        "空き地","荒野","水","土","火","泥","肥沃な大地","砂漠"
+        "空き地","荒野","水","土","泥","肥沃な大地","砂漠","火"
     };
 
     public string GetTerrainName(TerrainType terrainType)
@@ -13,14 +17,9 @@ public class TerrainManager : MonoBehaviour
         return _terrainNames[(int)terrainType];
     }
 
-    public Material GetTerrainMaterial(TerrainType terrainType)
-    {
-        return _materials[(int)terrainType];
-    }
-
     public Color GetTerrainColor(TerrainType terrainType)
     {
-        return _materials[((int)terrainType)].color;
+        return _terrainColors[((int)terrainType)];
     }
 }
 
@@ -30,8 +29,8 @@ public enum TerrainType
     Wasteland,
     Water,
     Soil,
-    Fire,
     Mud,
     FertileLand,
     Desert,
+    Fire,
 }
