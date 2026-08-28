@@ -39,4 +39,9 @@ public class TerrainCube : MonoBehaviour
 
         _isChangeNewStyle = true;
     }
+
+    public void TerrainAnimationControllerInitialize(TerrainManager terrainManager)
+    {
+        _animationController.Initialize(terrainManager, _terrainConfig);
+    }
 }

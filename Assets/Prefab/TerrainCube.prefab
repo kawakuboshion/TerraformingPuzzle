@@ -15,7 +15,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1978183549183695909
 Transform:
   m_ObjectHideFlags: 0
@@ -101,7 +101,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 0b5886908ea372642a35220a718b5f66, type: 2}
+  - {fileID: 2100000, guid: e0b996200d2890b4d990b13566fd7c8e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -214,7 +214,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 76d0a0bdfbd6b774f8ca57100151ee8f, type: 2}
+  - {fileID: 2100000, guid: 81f1286459c1d09489f577428457e4ac, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -329,7 +329,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 76d0a0bdfbd6b774f8ca57100151ee8f, type: 2}
+  - {fileID: 2100000, guid: 81f1286459c1d09489f577428457e4ac, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -443,7 +443,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 0b5886908ea372642a35220a718b5f66, type: 2}
+  - {fileID: 2100000, guid: e0b996200d2890b4d990b13566fd7c8e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -556,7 +556,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 76d0a0bdfbd6b774f8ca57100151ee8f, type: 2}
+  - {fileID: 2100000, guid: 81f1286459c1d09489f577428457e4ac, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -670,7 +670,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 0b5886908ea372642a35220a718b5f66, type: 2}
+  - {fileID: 2100000, guid: e0b996200d2890b4d990b13566fd7c8e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -728,6 +728,8 @@ GameObject:
   - component: {fileID: 7405000084339887515}
   - component: {fileID: 9118752023682523985}
   - component: {fileID: 468899555926127927}
+  - component: {fileID: 4661836552220119149}
+  - component: {fileID: 3634381592275089138}
   m_Layer: 0
   m_Name: TerrainCube
   m_TagString: Untagged
@@ -784,7 +786,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: be4443f4bfeb2d64e8096f541ddd11cc, type: 2}
+  - {fileID: 2100000, guid: b99e08b50f5c0c04e89c05357bd388ee, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -844,3 +846,38 @@ MonoBehaviour:
   _terrainType: 0
   _renderer: {fileID: 7405000084339887515}
   _plants: {fileID: 526423722800834774}
+  _animationController: {fileID: 4661836552220119149}
+  _terrainConfig: {fileID: 3634381592275089138}
+--- !u!114 &4661836552220119149
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7257454932894037260}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 072c9ccb1698bce48859792d010115a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TerrainAnimationController
+--- !u!114 &3634381592275089138
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7257454932894037260}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7155ee90c1ddcdd4d87d4dd4257e7ee8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TerrainConfig
+  _heightScales:
+  - 0.2
+  - 0.2
+  - 0.1
+  - 0.4
+  - 0.3
+  - 0.5
+  - 0.2
+  - 0.6

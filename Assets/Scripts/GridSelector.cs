@@ -25,12 +25,11 @@ public class GridSelector : MonoBehaviour
         // クリック位置を取得
         Vector3 position = pointer.position.ReadValue();
         Ray ray = Camera.main.ScreenPointToRay(position);
-        RaycastHit hit;
 
-        if(Physics.Raycast(ray, out hit))
+        if (Physics.Raycast(ray, out RaycastHit  hit))
         {
-            TerrainCube hitTerrain = hit.collider.gameObject.GetComponent<TerrainCube>();
-            if(hitTerrain != null )
+            GameObject hitObject = hit.collider.gameObject;
+            if (hitObject.TryGetComponent(out TerrainCube hitTerrain))
             {
                 _selectCursol.transform.position = hitTerrain.transform.position + new Vector3(0, 0.15f, 0);
                 _selectCursol.transform.localScale = hit.collider.gameObject.transform.localScale + new Vector3(0, 0.5f, 0);

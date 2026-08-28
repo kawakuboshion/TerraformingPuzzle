@@ -32,14 +32,18 @@ public class TerrainAnimationController : MonoBehaviour
         renderer.material.SetColor("_ColorA", _terrainManager.GetTerrainColor(oldTerrainType));
         renderer.material.SetColor("_ColorB", _terrainManager.GetTerrainColor(newTerrainType));
 
-        // 肥沃な大地以外は植物を非表示
-        if (newTerrainType != TerrainType.FertileLand)
+        Vector3 oldScale = cubeTransform.localScale;
+        float targetHeightScale = _terrainConfig.GetHeightScale(newTerrainType);
+
+        // 肥沃な大地の場合は植物を表示、それ以外の場合は非表示にする
+        if (newTerrainType == TerrainType.FertileLand)
+        {
+            plantsObject.SetActive(true);
+        }
+        else
         {
             plantsObject.SetActive(false);
         }
-
-        Vector3 oldScale = cubeTransform.localScale;
-        float targetHeightScale = _terrainConfig.GetHeightScale(newTerrainType);
 
         while (elapsedTime < fadeDuration)
         {
@@ -56,12 +60,6 @@ public class TerrainAnimationController : MonoBehaviour
                     new Vector3(oldScale.x, targetHeightScale, oldScale.z),
                     normalizedTime);
             }
-        }
-
-        // 肥沃な大地の場合は植物を表示
-        if (newTerrainType == TerrainType.FertileLand)
-        {
-            plantsObject.SetActive(true);
         }
 
         callback?.Invoke(null);

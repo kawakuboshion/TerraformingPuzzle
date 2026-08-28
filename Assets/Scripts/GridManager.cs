@@ -22,13 +22,14 @@ public class GridManager : MonoBehaviour
 
     void Awake()
     {
+        _environmentalChangeHandler.Initialize(this, _terrainTransitionRules);
         _board = new TerrainCube[_row, _column];
         for(int i = 0; i < _row; i++)
         {
             for (int j = 0; j < _column; j++)
             {
                 _board[i, j] = Instantiate(_terrainCubePrefab, new Vector3(i * _spacing, 0, j * _spacing), Quaternion.identity);
-                _board[i, j]._terrainManager = _terrainManager;
+                _board[i, j].TerrainAnimationControllerInitialize(_terrainManager);
                 _board[i, j].TerrainType = (TerrainType)UnityEngine.Random.Range(0, Enum.GetValues(typeof(TerrainType)).Length);
             }
         }
@@ -139,10 +140,7 @@ public class GridManager : MonoBehaviour
 
         // 2. 全マスのコルーチンを開始した「後」に、最後の処理を1度だけ実行する
         // last が null でないか確認（UnityAction のため、Invoke を使うか、引数の型に合わせる）
-        if (last != null)
-        {
-            last.Invoke(null);
-        }
+        last?.Invoke(null);
     }
 
     /// <summary>
