@@ -109,8 +109,7 @@ public class GameManager : MonoBehaviour
         _isAnimationRunning = true;
         
         // 環境変化の前に、全キューブの現在の地形を保存する
-        // これにより、複数のテラインが同時に地形変更される場合でも、
-        // 各テラインが正しい「古い地形」と「新しい地形」を保持できる
+        // 1フェーズ中に同じマスが複数回変化しても、アニメーションの開始状態を維持する
         _gridManager.SaveCurrentTerrainAsOld();
         
         // 環境変化を実行（複数のテラインで地形が変更される可能性あり）

@@ -16,10 +16,10 @@ public class TerrainCube : MonoBehaviour
         get { return _terrainType; }
         set
         {
-            if (_terrainType != value)
+            if (_terrainType != value && !_hasSavedOldTerrain)
             {
-                // 地形が変更される時点で、前の地形を保存
                 _oldTerrainType = _terrainType;
+                _hasSavedOldTerrain = true;
             }
             _terrainType = value;
         }
@@ -27,6 +27,12 @@ public class TerrainCube : MonoBehaviour
 
     public void PreviewTerrain(TerrainType previewType)
     {
+        if (!_isPreviewing)
+        {
+            _previewScale = transform.localScale;
+            _isPreviewing = true;
+        }
+
         _animationController.PreviewTerrain(
             _renderer,
             _plants,
@@ -36,14 +42,20 @@ public class TerrainCube : MonoBehaviour
 
     public void ClearPreview()
     {
-        _animationController.PreviewTerrain(
-            _renderer,
-            _plants,
-            _terrainType,
-            transform);
+        if (!_isPreviewing)
+        {
+            return;
+        }
+
+        _isPreviewing = false;
+        _animationController.ClearPreview(_renderer, _plants, _terrainType);
+        transform.localScale = _previewScale;
     }
 
     private TerrainType _oldTerrainType;
+    private Vector3 _previewScale;
+    private bool _isPreviewing;
+    private bool _hasSavedOldTerrain;
 
     private void Start()
     {
@@ -53,6 +65,8 @@ public class TerrainCube : MonoBehaviour
 
     public IEnumerator ChangeTerrainStyle(float fadeDuration)
     {
+        ClearPreview();
+
         // _oldTerrainType はプロパティの setter で既に設定されている
         // TerrainType プロパティが set される時点で、古い値を記録している
 
@@ -63,6 +77,8 @@ public class TerrainCube : MonoBehaviour
             _terrainType,
             transform,
             fadeDuration);
+        _oldTerrainType = _terrainType;
+        _hasSavedOldTerrain = false;
     }
 
     public void TerrainAnimationControllerInitialize(TerrainManager terrainManager)
@@ -77,5 +93,6 @@ public class TerrainCube : MonoBehaviour
     public void SaveCurrentAsOld()
     {
         _oldTerrainType = _terrainType;
+        _hasSavedOldTerrain = true;
     }
 }
