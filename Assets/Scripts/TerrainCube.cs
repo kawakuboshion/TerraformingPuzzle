@@ -14,7 +14,15 @@ public class TerrainCube : MonoBehaviour
     public TerrainType TerrainType
     {
         get { return _terrainType; }
-        set { _terrainType = value; }
+        set
+        {
+            if (_terrainType != value)
+            {
+                // 地形が変更される時点で、前の地形を保存
+                _oldTerrainType = _terrainType;
+            }
+            _terrainType = value;
+        }
     }
 
     public void PreviewTerrain(TerrainType previewType)
@@ -36,15 +44,17 @@ public class TerrainCube : MonoBehaviour
     }
 
     private TerrainType _oldTerrainType;
-    private bool _isChangeNewStyle = false;
 
-    public IEnumerator ChangeTerrainStyle(float fadeDuration, UnityEngine.Events.UnityAction<IEnumerator> callback)
+    private void Start()
     {
-        if (_isChangeNewStyle)
-        {
-            _oldTerrainType = _terrainType;
-            _isChangeNewStyle = false;
-        }
+        // 初回時の_oldTerrainTypeを現在の値で初期化
+        _oldTerrainType = _terrainType;
+    }
+
+    public IEnumerator ChangeTerrainStyle(float fadeDuration)
+    {
+        // _oldTerrainType はプロパティの setter で既に設定されている
+        // TerrainType プロパティが set される時点で、古い値を記録している
 
         yield return _animationController.PlayTerrainTransitionAnimation(
             _renderer,
@@ -52,14 +62,20 @@ public class TerrainCube : MonoBehaviour
             _oldTerrainType,
             _terrainType,
             transform,
-            fadeDuration,
-            callback);
-
-        _isChangeNewStyle = true;
+            fadeDuration);
     }
 
     public void TerrainAnimationControllerInitialize(TerrainManager terrainManager)
     {
         _animationController.Initialize(terrainManager, _terrainConfig);
+    }
+
+    /// <summary>
+    /// 現在の地形を「古い地形」として保存
+    /// 環境変化前に呼び出され、複数の地形変更が起きても _oldTerrainType が上書きされないようにする
+    /// </summary>
+    public void SaveCurrentAsOld()
+    {
+        _oldTerrainType = _terrainType;
     }
 }

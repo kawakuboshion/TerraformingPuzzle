@@ -2468,7 +2468,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameConfig
   _fireSpreadRate: 3
   _turnLimit: 20
-  _targetScore: 3000
+  _targetScore: 1000
   _animationDuration: 2
 --- !u!1 &1914810867
 GameObject:

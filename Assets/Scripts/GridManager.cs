@@ -219,23 +219,37 @@ public class GridManager : MonoBehaviour
         _environmentalChangeHandler.ApplyEnvironmentalChanges(isSpreadFire);
     }
 
-    public void ChangeNewStyle(float fadeDuration, UnityEngine.Events.UnityAction<IEnumerator> last)
+    /// <summary>
+    /// 全キューブのアニメーションを実行し、完了まで待機するコルーチン
+    /// </summary>
+    public IEnumerator ChangeNewStyleRoutine(float fadeDuration)
     {
+        var activeCoroutines = new List<Coroutine>();
+
+        // すべてのキューブのアニメーションコルーチンを開始
         for (int r = 0; r < Row; r++)
         {
             for (int c = 0; c < Column; c++)
             {
-                // 全てのマスは null を渡して実行（ここでは last を実行させない）
                 if (_board[r, c] != null)
                 {
-                    StartCoroutine(_board[r, c].ChangeTerrainStyle(fadeDuration, null));
+                    var coroutine = StartCoroutine(_board[r, c].ChangeTerrainStyle(fadeDuration));
+                    activeCoroutines.Add(coroutine);
                 }
             }
         }
 
-        // 2. 全マスのコルーチンを開始した「後」に、最後の処理を1度だけ実行する
-        // last が null でないか確認（UnityAction のため、Invoke を使うか、引数の型に合わせる）
-        last?.Invoke(null);
+        // すべてのコルーチンが完了するまで待機
+        foreach (var coroutine in activeCoroutines)
+        {
+            yield return coroutine;
+        }
+    }
+
+    public void ChangeNewStyle(float fadeDuration, UnityEngine.Events.UnityAction last)
+    {
+        StartCoroutine(ChangeNewStyleRoutine(fadeDuration));
+        last?.Invoke();
     }
 
     /// <summary>
