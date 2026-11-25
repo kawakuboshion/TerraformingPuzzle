@@ -25,8 +25,7 @@ public class TerrainAnimationController : MonoBehaviour
         TerrainType oldTerrainType,
         TerrainType newTerrainType,
         Transform cubeTransform,
-        float fadeDuration,
-        UnityEngine.Events.UnityAction<IEnumerator> callback)
+        float fadeDuration)
     {
         float elapsedTime = 0f;
         renderer.material.SetColor("_ColorA", _terrainManager.GetTerrainColor(oldTerrainType));
@@ -61,7 +60,5 @@ public class TerrainAnimationController : MonoBehaviour
                     normalizedTime);
             }
         }
-
-        callback?.Invoke(null);
     }
 }
