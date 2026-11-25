@@ -64,4 +64,25 @@ public class TerrainAnimationController : MonoBehaviour
 
         callback?.Invoke(null);
     }
+
+    /// <summary>
+    /// カード配置前に変化結果だけを見た目へ反映する。
+    /// 実際の地形データは変更しない。
+    /// </summary>
+    public void PreviewTerrain(
+        MeshRenderer renderer,
+        GameObject plantsObject,
+        TerrainType previewType,
+        Transform cubeTransform)
+    {
+        renderer.material.SetColor("_ColorA", _terrainManager.GetTerrainColor(previewType));
+        renderer.material.SetColor("_ColorB", _terrainManager.GetTerrainColor(previewType));
+        renderer.material.SetFloat("_Transition", 1f);
+        cubeTransform.localScale = new Vector3(
+            cubeTransform.localScale.x,
+            _terrainConfig.GetHeightScale(previewType),
+            cubeTransform.localScale.z);
+
+        plantsObject.SetActive(previewType == TerrainType.FertileLand);
+    }
 }

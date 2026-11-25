@@ -19,7 +19,22 @@ public class PlayerAction : MonoBehaviour
     {
         Mouse mouse = Mouse.current;
         if (mouse == null) { return; }
-        if (!_canMove) { return; }
+        if (!_canMove)
+        {
+            _gridManager.ClearPreview();
+            return;
+        }
+
+        if (_gridSelector.TryGetSelectPos(out Vector3 hoverPos) &&
+            _gridManager.TryWorldPositionToGridPosition(hoverPos, out (int, int) hoverGridPos) &&
+            _handSlots.TryGetUseCard(out TerrainType hoverType))
+        {
+            _gridManager.PreviewTopographicalChanges(hoverGridPos, hoverType);
+        }
+        else
+        {
+            _gridManager.ClearPreview();
+        }
 
         if (mouse.leftButton.wasPressedThisFrame)
         {

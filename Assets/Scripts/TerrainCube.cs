@@ -17,6 +17,24 @@ public class TerrainCube : MonoBehaviour
         set { _terrainType = value; }
     }
 
+    public void PreviewTerrain(TerrainType previewType)
+    {
+        _animationController.PreviewTerrain(
+            _renderer,
+            _plants,
+            previewType,
+            transform);
+    }
+
+    public void ClearPreview()
+    {
+        _animationController.PreviewTerrain(
+            _renderer,
+            _plants,
+            _terrainType,
+            transform);
+    }
+
     private TerrainType _oldTerrainType;
     private bool _isChangeNewStyle = false;
 

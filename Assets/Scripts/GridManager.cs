@@ -19,6 +19,7 @@ public class GridManager : MonoBehaviour
 
     private TerrainCube[,] _board;
     private HashSet<(int, int)> _visitedGrids = new HashSet<(int, int)>();
+    private readonly HashSet<(int, int)> _previewGrids = new HashSet<(int, int)>();
 
     void Awake()
     {
@@ -43,6 +44,100 @@ public class GridManager : MonoBehaviour
     public void ChangeTerrainType(TerrainType type, (int,int) gridPos)
     {
         _board[gridPos.Item1, gridPos.Item2].TerrainType = type;
+    }
+
+    /// <summary>
+    /// カード配置前の変化プレビューを盤面へ表示する。
+    /// 実際の地形データとスコアは変更しない。
+    /// </summary>
+    public void PreviewTopographicalChanges((int, int) gridPos, TerrainType type)
+    {
+        ClearPreview();
+
+        Dictionary<(int, int), TerrainType> preview = new Dictionary<(int, int), TerrainType>();
+
+        (int, int)[] aroundGrid = new (int, int)[5]
+        {
+            gridPos,
+            (gridPos.Item1, gridPos.Item2 - 1),
+            (gridPos.Item1, gridPos.Item2 + 1),
+            (gridPos.Item1 - 1, gridPos.Item2),
+            (gridPos.Item1 + 1, gridPos.Item2),
+        };
+
+        for (int i = 0; i < aroundGrid.Length; i++)
+        {
+            if (aroundGrid[i].Item1 < 0 || aroundGrid[i].Item1 >= _board.GetLength(0)) { continue; }
+            if (aroundGrid[i].Item2 < 0 || aroundGrid[i].Item2 >= _board.GetLength(1)) { continue; }
+
+            if (i == 0)
+            {
+                TerrainType currentType = _board[gridPos.Item1, gridPos.Item2].TerrainType;
+                if (currentType != type && currentType != TerrainType.FertileLand)
+                {
+                    preview[gridPos] = type;
+                }
+                continue;
+            }
+
+            TerrainType adjacentType = _board[aroundGrid[i].Item1, aroundGrid[i].Item2].TerrainType;
+            if (_terrainTransitionRules.TryPreviewTransition(type, adjacentType, out TerrainType newType))
+            {
+                preview[aroundGrid[i]] = newType;
+                PreviewChain(aroundGrid[i], newType, preview, new HashSet<(int, int)> { gridPos, aroundGrid[i] });
+            }
+        }
+
+        foreach (var item in preview)
+        {
+            _previewGrids.Add(item.Key);
+            _board[item.Key.Item1, item.Key.Item2].PreviewTerrain(item.Value);
+        }
+    }
+
+    public void ClearPreview()
+    {
+        foreach ((int, int) gridPos in _previewGrids)
+        {
+            if (gridPos.Item1 >= 0 && gridPos.Item1 < _board.GetLength(0) &&
+                gridPos.Item2 >= 0 && gridPos.Item2 < _board.GetLength(1))
+            {
+                _board[gridPos.Item1, gridPos.Item2].ClearPreview();
+            }
+        }
+
+        _previewGrids.Clear();
+    }
+
+    private void PreviewChain(
+        (int, int) gridPos,
+        TerrainType type,
+        Dictionary<(int, int), TerrainType> preview,
+        HashSet<(int, int)> visited)
+    {
+        (int, int)[] adjacentPositions = new (int, int)[4]
+        {
+            (gridPos.Item1, gridPos.Item2 - 1),
+            (gridPos.Item1, gridPos.Item2 + 1),
+            (gridPos.Item1 - 1, gridPos.Item2),
+            (gridPos.Item1 + 1, gridPos.Item2),
+        };
+
+        foreach ((int, int) adjacentPos in adjacentPositions)
+        {
+            if (adjacentPos.Item1 < 0 || adjacentPos.Item1 >= _board.GetLength(0)) { continue; }
+            if (adjacentPos.Item2 < 0 || adjacentPos.Item2 >= _board.GetLength(1)) { continue; }
+            if (visited.Contains(adjacentPos)) { continue; }
+
+            TerrainType adjacentType = _board[adjacentPos.Item1, adjacentPos.Item2].TerrainType;
+            if (_terrainTransitionRules.TryPreviewTransition(type, adjacentType, out TerrainType newType))
+            {
+                preview[adjacentPos] = newType;
+                HashSet<(int, int)> nextVisited = new HashSet<(int, int)>(visited);
+                nextVisited.Add(adjacentPos);
+                PreviewChain(adjacentPos, newType, preview, nextVisited);
+            }
+        }
     }
 
     /// <summary>
