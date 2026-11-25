@@ -9,6 +9,52 @@ public class TerrainTransitionRules : MonoBehaviour
     [SerializeField] private GameManager _gameManager;
 
     /// <summary>
+    /// カード配置前のプレビュー用。スコア加算や環境確率を発生させずに変化先を返す。
+    /// </summary>
+    public bool TryPreviewTransition(TerrainType type1, TerrainType type2, out TerrainType newType)
+    {
+        switch (type1)
+        {
+            case TerrainType.Water:
+                switch (type2)
+                {
+                    case TerrainType.Soil:
+                        newType = TerrainType.Mud;
+                        return true;
+                    case TerrainType.Mud:
+                        newType = TerrainType.FertileLand;
+                        return true;
+                    case TerrainType.Fire:
+                        newType = TerrainType.VacantLot;
+                        return true;
+                    case TerrainType.Desert:
+                        newType = TerrainType.Soil;
+                        return true;
+                }
+                break;
+
+            case TerrainType.Soil:
+                if (type2 == TerrainType.Water)
+                {
+                    newType = TerrainType.Mud;
+                    return true;
+                }
+                break;
+
+            case TerrainType.Mud:
+                if (type2 == TerrainType.Water)
+                {
+                    newType = TerrainType.FertileLand;
+                    return true;
+                }
+                break;
+        }
+
+        newType = type2;
+        return false;
+    }
+
+    /// <summary>
     /// 2つの地形が接触した時の遷移ルール
     /// </summary>
     public bool TryTransitionTerrain(TerrainType type1, TerrainType type2, out TerrainType newType)

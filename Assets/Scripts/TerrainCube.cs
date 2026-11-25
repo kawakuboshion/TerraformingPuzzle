@@ -25,6 +25,24 @@ public class TerrainCube : MonoBehaviour
         }
     }
 
+    public void PreviewTerrain(TerrainType previewType)
+    {
+        _animationController.PreviewTerrain(
+            _renderer,
+            _plants,
+            previewType,
+            transform);
+    }
+
+    public void ClearPreview()
+    {
+        _animationController.PreviewTerrain(
+            _renderer,
+            _plants,
+            _terrainType,
+            transform);
+    }
+
     private TerrainType _oldTerrainType;
 
     private void Start()
