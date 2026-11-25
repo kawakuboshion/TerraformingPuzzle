@@ -48,6 +48,27 @@ public class TerrainTransitionRules : MonoBehaviour
                     return true;
                 }
                 break;
+
+            case TerrainType.Fire:
+                switch (type2)
+                {
+                    case TerrainType.Water:
+                        newType = TerrainType.VacantLot;
+                        return true;
+                    case TerrainType.Soil:
+                    case TerrainType.FertileLand:
+                        newType = TerrainType.Fire;
+                        return true;
+                }
+                break;
+
+            case TerrainType.Desert:
+                if (type2 == TerrainType.Water)
+                {
+                    newType = TerrainType.Soil;
+                    return true;
+                }
+                break;
         }
 
         newType = type2;
@@ -59,126 +80,48 @@ public class TerrainTransitionRules : MonoBehaviour
     /// </summary>
     public bool TryTransitionTerrain(TerrainType type1, TerrainType type2, out TerrainType newType)
     {
-        switch (type1)
+        if (type1 == TerrainType.VacantLot || type1 == TerrainType.Wasteland)
         {
-            case TerrainType.Water:
-                return TryWaterTransition(type2, out newType);
-
-            case TerrainType.Soil:
-                return TrySoilTransition(type2, out newType);
-
-            case TerrainType.Fire:
-                return TryFireTransition(type2, out newType);
-
-            case TerrainType.Mud:
-                return TryMudTransition(type2, out newType);
-
-            case TerrainType.Desert:
-                return TryDesertTransition(type2, out newType);
+            newType = type1;
+            return false;
         }
 
-        newType = type1;
-        return false;
-    }
-
-    private bool TryWaterTransition(TerrainType type2, out TerrainType newType)
-    {
-        switch (type2)
+        if (type1 == TerrainType.Desert)
         {
-            case TerrainType.Soil:
-                newType = TerrainType.Mud;
-                return true;
-
-            case TerrainType.Mud:
-                newType = TerrainType.FertileLand;
-                _gameManager.AddScore(GameConfig.SCORE_WATER_MUD_TRANSITION);
-                return true;
-
-            case TerrainType.Fire:
-                newType = TerrainType.VacantLot;
-                _gameManager.AddScore(GameConfig.SCORE_EXTINGUISH_FIRE);
-                return true;
-
-            case TerrainType.Desert:
-                newType = TerrainType.Soil;
-                return true;
-        }
-
-        newType = type2;
-        return false;
-    }
-
-    private bool TrySoilTransition(TerrainType type2, out TerrainType newType)
-    {
-        if (type2 == TerrainType.Water)
-        {
-            newType = TerrainType.Mud;
-            return true;
-        }
-
-        newType = type2;
-        return false;
-    }
-
-    private bool TryFireTransition(TerrainType type2, out TerrainType newType)
-    {
-        switch (type2)
-        {
-            case TerrainType.Water:
-                newType = TerrainType.VacantLot;
-                _gameManager.AddScore(GameConfig.SCORE_EXTINGUISH_FIRE);
-                return true;
-
-            case TerrainType.FertileLand:
-                newType = TerrainType.Fire;
-                _gameManager.MinusScore(GameConfig.SCORE_FERTILE_LAND_DESTROYED);
-                return true;
-
-            case TerrainType.Soil:
-                newType = TerrainType.Fire;
-                return true;
-        }
-
-        newType = type2;
-        return false;
-    }
-
-    private bool TryMudTransition(TerrainType type2, out TerrainType newType)
-    {
-        if (type2 == TerrainType.Water)
-        {
-            newType = TerrainType.FertileLand;
-            _gameManager.AddScore(GameConfig.SCORE_WATER_MUD_TRANSITION);
-            return true;
-        }
-
-        newType = type2;
-        return false;
-    }
-
-    private bool TryDesertTransition(TerrainType type2, out TerrainType newType)
-    {
-        switch (type2)
-        {
-            case TerrainType.FertileLand:
-            case TerrainType.Soil:
-                if (Random.Range(0, 100) <= TerrainConfig.DESERTIFICATION_PROBABILITY)
+            if ((type2 == TerrainType.FertileLand || type2 == TerrainType.Soil) &&
+                Random.Range(0, 100) <= TerrainConfig.DESERTIFICATION_PROBABILITY)
+            {
+                newType = TerrainType.Desert;
+                if (type2 == TerrainType.FertileLand)
                 {
-                    newType = TerrainType.Desert;
-                    if (type2 == TerrainType.FertileLand)
-                    {
-                        _gameManager.MinusScore(GameConfig.SCORE_FERTILE_LAND_DESTROYED);
-                    }
-                    return true;
+                    _gameManager.MinusScore(GameConfig.SCORE_FERTILE_LAND_DESTROYED);
                 }
-                break;
-
-            case TerrainType.Water:
-                newType = TerrainType.Soil;
                 return true;
+            }
         }
 
-        newType = type2;
-        return false;
+        if (!TryPreviewTransition(type1, type2, out newType))
+        {
+            return false;
+        }
+
+        if ((type1 == TerrainType.Water && type2 == TerrainType.Mud) ||
+            (type1 == TerrainType.Mud && type2 == TerrainType.Water))
+        {
+            _gameManager.AddScore(GameConfig.SCORE_WATER_MUD_TRANSITION);
+        }
+
+        if ((type1 == TerrainType.Water && type2 == TerrainType.Fire) ||
+            (type1 == TerrainType.Fire && type2 == TerrainType.Water))
+        {
+            _gameManager.AddScore(GameConfig.SCORE_EXTINGUISH_FIRE);
+        }
+
+        if (type1 == TerrainType.Fire && type2 == TerrainType.FertileLand)
+        {
+            _gameManager.MinusScore(GameConfig.SCORE_FERTILE_LAND_DESTROYED);
+        }
+
+        return true;
     }
 }

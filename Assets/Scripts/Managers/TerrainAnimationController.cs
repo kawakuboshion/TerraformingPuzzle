@@ -9,6 +9,7 @@ public class TerrainAnimationController : MonoBehaviour
 {
     private TerrainManager _terrainManager;
     private TerrainConfig _terrainConfig;
+    private MaterialPropertyBlock _previewProperties;
 
     public void Initialize(TerrainManager terrainManager, TerrainConfig terrainConfig)
     {
@@ -28,8 +29,10 @@ public class TerrainAnimationController : MonoBehaviour
         float fadeDuration)
     {
         float elapsedTime = 0f;
+        renderer.SetPropertyBlock(null);
         renderer.material.SetColor("_ColorA", _terrainManager.GetTerrainColor(oldTerrainType));
         renderer.material.SetColor("_ColorB", _terrainManager.GetTerrainColor(newTerrainType));
+        renderer.material.SetFloat("_Transition", 0f);
 
         Vector3 oldScale = cubeTransform.localScale;
         float targetHeightScale = _terrainConfig.GetHeightScale(newTerrainType);
@@ -72,14 +75,27 @@ public class TerrainAnimationController : MonoBehaviour
         TerrainType previewType,
         Transform cubeTransform)
     {
-        renderer.material.SetColor("_ColorA", _terrainManager.GetTerrainColor(previewType));
-        renderer.material.SetColor("_ColorB", _terrainManager.GetTerrainColor(previewType));
-        renderer.material.SetFloat("_Transition", 1f);
+        if (_previewProperties == null)
+        {
+            _previewProperties = new MaterialPropertyBlock();
+        }
+
+        renderer.GetPropertyBlock(_previewProperties);
+        _previewProperties.SetColor("_ColorA", _terrainManager.GetTerrainColor(previewType));
+        _previewProperties.SetColor("_ColorB", _terrainManager.GetTerrainColor(previewType));
+        _previewProperties.SetFloat("_Transition", 1f);
+        renderer.SetPropertyBlock(_previewProperties);
         cubeTransform.localScale = new Vector3(
             cubeTransform.localScale.x,
             _terrainConfig.GetHeightScale(previewType),
             cubeTransform.localScale.z);
 
         plantsObject.SetActive(previewType == TerrainType.FertileLand);
+    }
+
+    public void ClearPreview(MeshRenderer renderer, GameObject plantsObject, TerrainType terrainType)
+    {
+        renderer.SetPropertyBlock(null);
+        plantsObject.SetActive(terrainType == TerrainType.FertileLand);
     }
 }
